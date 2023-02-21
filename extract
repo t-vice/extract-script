@@ -1,0 +1,59 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]; then
+  echo "Requires 'unrar' and 'p7zip'"
+  echo "Usage: extract <archive-file>"
+  exit 1
+fi
+
+
+STARTTIME=$(date +%s)
+
+function time_taken {
+  ENDTIME=$(date +%s)
+  DIFF=$(( $ENDTIME - $STARTTIME ))
+  echo -e "\nExtracted in: $(($DIFF / 60))m $(($DIFF % 60))s"
+}
+
+archive=$1
+
+if [ -f "$archive" ]; then
+  case $archive in
+    *.tar)
+      pv -f "$archive" | tar xf - -C . && time_taken
+      ;;
+    *.tar.gz | *.tgz)
+      pv -f "$archive" | tar xzf - -C . && time_taken
+      ;;
+    *.tar.bz2 | *.tbz2)
+      pv -f "$archive" | tar xjf - -C . && time_taken 
+      ;;
+    *.tar.xz | *.txz)
+      pv -f "$archive" | tar xJf - -C . && time_taken
+      ;;
+    *.tar.z | *.tz)
+      pv -f "$archive" | tar xZf - -C . && time_taken
+      ;;
+    *.zip)
+      pv -f "$archive" | unzip -q -d . "$archive" && time_taken
+      ;;
+    *.7z)
+      7z x -bsp1 "$archive" -o. && time_taken
+      ;;
+    *.rar)
+      unrar x -p- -y -c- -idp "$archive" . && time_taken
+      ;;
+    *)
+      echo "Unsupported format: $archive"
+      exit 1
+      ;;
+
+    esac
+
+else
+  echo "File not found: $archive"
+  exit 1
+fi
+
+
+
